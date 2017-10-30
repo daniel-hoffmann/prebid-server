@@ -7,10 +7,42 @@ import (
 	"github.com/prebid/prebid-server/ssl"
 	"net/http"
 	"time"
+	"github.com/mxmCherry/openrtb"
 )
 
-// Adapters connect prebid-server to a demand partner. Their primary purpose is to produce bids
-// in response to Auction requests.
+// Bidder specifies what's needed to participate in the prebid auction.
+type Bidder interface {
+	// Bid should return the SeatBid containing all bids used by this bidder.
+	Bid(ctx context.Context, request *openrtb.BidRequest) (*openrtb.SeatBid, error)
+}
+
+// BaseBidder combines some shared code to simplify the code needed to make a Bidder.
+// The goal here is to simplify things so that Bidders are as easy as possible to implement and test.
+type BaseBidder struct {
+	// Name uniquely identifies this bidder. This must be identical to the Prebid.js adapter code
+	// (if this bidder is supported in Prebid.JS), and must not overlap with any other adapters in prebid-server.
+	Name string
+	// MakeHttpRequests makes the HTTP requests needed to service the given BidRequest.
+	// The request object **must not be mutated** by this function.
+	MakeHttpRequests func(request *openrtb.BidRequest) ([]*http.Request, error)
+	// MakeBids makes the OpenRTB Bids from the given HTTP Response.
+	MakeBids func(response *http.Response) ([]*openrtb.Bid, error)
+}
+
+// On this struct, Bid should:
+//
+// 1. Embed any error messages inside the SeatBid.ext.prebid.errors
+// 2. Insert as many bids into the auction as possible, before the timeout.
+// 3. Send no requests after the timeout has occurred.
+func (bidder *BaseBidder) Bid(ctx context.Context, request *openrtb.BidRequest) (*openrtb.SeatBid, error) {
+	// TODO: Implement for real
+  return nil, nil
+}
+
+// Adapter is a deprecated interface which connects prebid-server to a demand partner.
+// Their primary purpose is to produce bids in response to Auction requests.
+//
+// For the future, see Bidder.
 type Adapter interface {
 	// Name uniquely identifies this adapter. This must be identical to the code in Prebid.js,
 	// but cannot overlap with any other adapters in prebid-server.
