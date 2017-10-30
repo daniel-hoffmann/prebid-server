@@ -35,7 +35,7 @@ type PBSBidder struct {
 
 // Bid implements the interface using the simpler functions from the struct.
 func (bidder *PBSBidder) Bid(ctx context.Context, request *openrtb.BidRequest) (*openrtb.SeatBid, error) {
-	// TODO: Implement for real
+  // TODO: Implement for real
   return nil, nil
 }
 
