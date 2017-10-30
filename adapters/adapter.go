@@ -13,12 +13,16 @@ import (
 // Bidder specifies what's needed to participate in the prebid auction.
 type Bidder interface {
 	// Bid should return the SeatBid containing all bids used by this bidder.
-	Bid(ctx context.Context, request *openrtb.BidRequest) (*openrtb.SeatBid, error)
+	//
+	// The returned SeatBid **must** contain `ext` which conforms to the response contract:
+	// https://gist.github.com/dbemiller/68aa3387189fa17d3addfb9818dd4d97#seatbid
+	// TODO: Define some json-schemas and enforce this through tests.
+	Bid(ctx context.Context, request *openrtb.BidRequest) *openrtb.SeatBid
 }
 
-// BaseBidder combines some shared code to simplify the code needed to make a Bidder.
+// PBSBidder combines some shared code to simplify the code needed to make a Bidder.
 // The goal here is to simplify things so that Bidders are as easy as possible to implement and test.
-type BaseBidder struct {
+type PBSBidder struct {
 	// Name uniquely identifies this bidder. This must be identical to the Prebid.js adapter code
 	// (if this bidder is supported in Prebid.JS), and must not overlap with any other adapters in prebid-server.
 	Name string
@@ -29,12 +33,8 @@ type BaseBidder struct {
 	MakeBids func(response *http.Response) ([]*openrtb.Bid, error)
 }
 
-// On this struct, Bid should:
-//
-// 1. Embed any error messages inside the SeatBid.ext.prebid.errors
-// 2. Insert as many bids into the auction as possible, before the timeout.
-// 3. Send no requests after the timeout has occurred.
-func (bidder *BaseBidder) Bid(ctx context.Context, request *openrtb.BidRequest) (*openrtb.SeatBid, error) {
+// Bid implements the interface using the simpler functions from the struct.
+func (bidder *PBSBidder) Bid(ctx context.Context, request *openrtb.BidRequest) (*openrtb.SeatBid, error) {
 	// TODO: Implement for real
   return nil, nil
 }
